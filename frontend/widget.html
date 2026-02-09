@@ -1,0 +1,917 @@
+<!-- frontend/widget.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Cita</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .widget-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .widget-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .widget-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .widget-header p {
+            opacity: 0.9;
+            font-size: 15px;
+        }
+
+        .widget-body {
+            padding: 30px;
+        }
+
+        /* Pasos del formulario */
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .step-dot.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scale(1.2);
+        }
+
+        .step-dot.completed {
+            background: #4CAF50;
+        }
+
+        .step-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Formulario */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Servicios */
+        .servicios-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .servicio-card {
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .servicio-card:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .servicio-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .servicio-info h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .servicio-info p {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .servicio-precio {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Horarios */
+        .horarios-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .hora-btn {
+            padding: 12px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .hora-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .hora-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .hora-btn:disabled {
+            background: #f5f5f5;
+            color: #bbb;
+            cursor: not-allowed;
+            border-color: #eee;
+        }
+
+        /* Porcentaje de pago */
+        .porcentaje-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .porcentaje-btn {
+            padding: 15px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .porcentaje-btn:hover {
+            border-color: #667eea;
+        }
+
+        .porcentaje-btn.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .porcentaje-btn .percent {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .porcentaje-btn .label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Resumen */
+        .resumen-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .resumen-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .resumen-row:last-child {
+            border-bottom: none;
+        }
+
+        .resumen-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            padding-top: 15px;
+            margin-top: 10px;
+            border-top: 2px solid #667eea;
+            border-bottom: none;
+        }
+
+        .resumen-label {
+            color: #666;
+        }
+
+        .resumen-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Botones */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #eee;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-pagar {
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            width: 100%;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mensajes */
+        .mensaje {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .mensaje.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+
+        .mensaje.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        /* Info box */
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .widget-header {
+                padding: 20px;
+            }
+
+            .widget-body {
+                padding: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .horarios-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .porcentaje-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <h1>📅 Reservar Cita</h1>
+            <p>Selecciona tu servicio y agenda tu horario</p>
+        </div>
+
+        <div class="widget-body">
+            <!-- Indicador de pasos -->
+            <div class="step-indicator">
+                <div class="step-dot active" data-step="1"></div>
+                <div class="step-dot" data-step="2"></div>
+                <div class="step-dot" data-step="3"></div>
+                <div class="step-dot" data-step="4"></div>
+            </div>
+
+            <!-- Mensaje de error/éxito -->
+            <div id="mensaje" class="mensaje"></div>
+
+            <!-- PASO 1: Seleccionar Servicio -->
+            <div class="step active" id="step1">
+                <h2 class="step-title">¿Qué servicio necesitas?</h2>
+                <div class="servicios-grid" id="servicios-lista">
+                    <!-- Se cargan dinámicamente -->
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="siguientePaso(2)" id="btn-paso1" disabled>
+                        Continuar →
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASO 2: Seleccionar Fecha y Hora -->
+            <div class="step" id="step2">
+                <h2 class="step-title">¿Cuándo te queda bien?</h2>
+                
+                <div class="form-group">
+                    <label>📅 Fecha</label>
+                    <input type="date" id="fecha" min="" required>
+                </div>
+
+                <div class="form-group">
+                    <label>🕐 Horarios disponibles</label>
+                    <div class="horarios-grid" id="horarios-lista">
+                        <p style="grid-column: 1/-1; text-align: center; color: #999;">
+                            Selecciona una fecha primero
+                        </p>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="anteriorPaso(1)">← Atrás</button>
+                    <button class="btn btn-primary" onclick="siguientePaso(3)" id="btn-paso2" disabled>
+                        Continuar →
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASO 3: Datos del Cliente -->
+            <div class="step" id="step3">
+                <h2 class="step-title">Tus datos de contacto</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="nombre" placeholder="Tu nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input type="text" id="apellido" placeholder="Tu apellido" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>📧 Email</label>
+                    <input type="email" id="email" placeholder="tu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>📱 Teléfono / WhatsApp</label>
+                    <input type="tel" id="telefono" placeholder="11 2345-6789" required>
+                </div>
+
+                <div class="form-group">
+                    <label>📝 Notas adicionales (opcional)</label>
+                    <textarea id="notas" placeholder="¿Algo que debamos saber?"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="anteriorPaso(2)">← Atrás</button>
+                    <button class="btn btn-primary" onclick="siguientePaso(4)" id="btn-paso3">
+                        Continuar →
+                    </button>
+                </div>
+            </div>
+
+            <!-- PASO 4: Pago y Confirmación -->
+            <div class="step" id="step4">
+                <h2 class="step-title">Confirmar y Pagar</h2>
+
+                <div class="resumen-box">
+                    <div class="resumen-row">
+                        <span class="resumen-label">Servicio</span>
+                        <span class="resumen-value" id="resumen-servicio">-</span>
+                    </div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Fecha</span>
+                        <span class="resumen-value" id="resumen-fecha">-</span>
+                    </div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Hora</span>
+                        <span class="resumen-value" id="resumen-hora">-</span>
+                    </div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Cliente</span>
+                        <span class="resumen-value" id="resumen-cliente">-</span>
+                    </div>
+                    <div class="resumen-row">
+                        <span class="resumen-label">Precio total</span>
+                        <span class="resumen-value" id="resumen-precio">-</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>💳 ¿Cuánto deseas pagar ahora?</label>
+                    <div class="porcentaje-options">
+                        <div class="porcentaje-btn" data-porcentaje="30" onclick="seleccionarPorcentaje(30)">
+                            <div class="percent">30%</div>
+                            <div class="label">Seña mínima</div>
+                        </div>
+                        <div class="porcentaje-btn selected" data-porcentaje="50" onclick="seleccionarPorcentaje(50)">
+                            <div class="percent">50%</div>
+                            <div class="label">Mitad</div>
+                        </div>
+                        <div class="porcentaje-btn" data-porcentaje="100" onclick="seleccionarPorcentaje(100)">
+                            <div class="percent">100%</div>
+                            <div class="label">Total</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    💰 Pagarás ahora: <strong id="monto-pagar">$0</strong>
+                    <span id="monto-restante"></span>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="anteriorPaso(3)">← Atrás</button>
+                    <button class="btn btn-primary btn-pagar" onclick="confirmarReserva()" id="btn-confirmar">
+                        💳 Pagar con MercadoPago
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Procesando tu reserva...</p>
+                <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                    Serás redirigido a MercadoPago
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===================== VARIABLES GLOBALES =====================
+        const API_URL = window.location.origin;
+        
+        let servicios = [];
+        let reservaData = {
+            servicio_id: null,
+            servicio_nombre: '',
+            servicio_precio: 0,
+            fecha: '',
+            hora: '',
+            nombre: '',
+            apellido: '',
+            email: '',
+            telefono: '',
+            notas: '',
+            porcentaje_pago: 50
+        };
+
+        // ===================== INICIALIZACIÓN =====================
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarServicios();
+            configurarFechaMinima();
+            
+            // Event listener para cambio de fecha
+            document.getElementById('fecha').addEventListener('change', (e) => {
+                reservaData.fecha = e.target.value;
+                cargarHorarios(e.target.value);
+            });
+        });
+
+        // ===================== CARGAR SERVICIOS =====================
+        async function cargarServicios() {
+            try {
+                const response = await fetch(`${API_URL}/api/servicios`);
+                servicios = await response.json();
+                
+                const container = document.getElementById('servicios-lista');
+                container.innerHTML = servicios.map(s => `
+                    <div class="servicio-card" onclick="seleccionarServicio(${s.id})" data-id="${s.id}">
+                        <div class="servicio-info">
+                            <h3>${s.nombre}</h3>
+                            <p>${s.descripcion || ''} • ${s.duracion} min</p>
+                        </div>
+                        <div class="servicio-precio">$${s.precio.toFixed(2)}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando servicios:', error);
+                mostrarMensaje('Error al cargar servicios. Intenta recargar la página.', 'error');
+            }
+        }
+
+        // ===================== SELECCIONAR SERVICIO =====================
+        function seleccionarServicio(id) {
+            const servicio = servicios.find(s => s.id === id);
+            if (!servicio) return;
+
+            reservaData.servicio_id = id;
+            reservaData.servicio_nombre = servicio.nombre;
+            reservaData.servicio_precio = servicio.precio;
+
+            // Actualizar UI
+            document.querySelectorAll('.servicio-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`.servicio-card[data-id="${id}"]`).classList.add('selected');
+            document.getElementById('btn-paso1').disabled = false;
+        }
+
+        // ===================== CONFIGURAR FECHA MÍNIMA =====================
+        function configurarFechaMinima() {
+            const hoy = new Date();
+            const manana = new Date(hoy);
+            manana.setDate(manana.getDate() + 1);
+            
+            const fechaMin = manana.toISOString().split('T')[0];
+            document.getElementById('fecha').setAttribute('min', fechaMin);
+        }
+
+        // ===================== CARGAR HORARIOS =====================
+        async function cargarHorarios(fecha) {
+            const container = document.getElementById('horarios-lista');
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">Cargando...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/disponibilidad/${fecha}`);
+                const horasDisponibles = await response.json();
+
+                if (horasDisponibles.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #f44336;">No hay horarios disponibles este día</p>';
+                    return;
+                }
+
+                container.innerHTML = horasDisponibles.map(hora => `
+                    <button type="button" class="hora-btn" onclick="seleccionarHora('${hora}')">${hora}</button>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error cargando horarios:', error);
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #f44336;">Error al cargar horarios</p>';
+            }
+        }
+
+        // ===================== SELECCIONAR HORA =====================
+        function seleccionarHora(hora) {
+            reservaData.hora = hora;
+
+            document.querySelectorAll('.hora-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            document.getElementById('btn-paso2').disabled = false;
+        }
+
+        // ===================== SELECCIONAR PORCENTAJE =====================
+        function seleccionarPorcentaje(porcentaje) {
+            reservaData.porcentaje_pago = porcentaje;
+
+            document.querySelectorAll('.porcentaje-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.querySelector(`.porcentaje-btn[data-porcentaje="${porcentaje}"]`).classList.add('selected');
+
+            actualizarMontos();
+        }
+
+        // ===================== ACTUALIZAR MONTOS =====================
+        function actualizarMontos() {
+            const total = reservaData.servicio_precio;
+            const porcentaje = reservaData.porcentaje_pago;
+            const montoPagar = (total * porcentaje / 100).toFixed(2);
+            const montoRestante = (total - montoPagar).toFixed(2);
+
+            document.getElementById('monto-pagar').textContent = `$${montoPagar}`;
+            
+            if (montoRestante > 0) {
+                document.getElementById('monto-restante').innerHTML = `<br>Resto a pagar en el local: <strong>$${montoRestante}</strong>`;
+            } else {
+                document.getElementById('monto-restante').innerHTML = '';
+            }
+        }
+
+        // ===================== NAVEGACIÓN ENTRE PASOS =====================
+        function siguientePaso(paso) {
+            // Validar paso actual
+            if (paso === 2 && !reservaData.servicio_id) {
+                mostrarMensaje('Selecciona un servicio', 'error');
+                return;
+            }
+            if (paso === 3 && (!reservaData.fecha || !reservaData.hora)) {
+                mostrarMensaje('Selecciona fecha y hora', 'error');
+                return;
+            }
+            if (paso === 4) {
+                // Guardar datos del cliente
+                reservaData.nombre = document.getElementById('nombre').value.trim();
+                reservaData.apellido = document.getElementById('apellido').value.trim();
+                reservaData.email = document.getElementById('email').value.trim();
+                reservaData.telefono = document.getElementById('telefono').value.trim();
+                reservaData.notas = document.getElementById('notas').value.trim();
+
+                if (!reservaData.nombre || !reservaData.apellido || !reservaData.email || !reservaData.telefono) {
+                    mostrarMensaje('Completa todos los campos obligatorios', 'error');
+                    return;
+                }
+
+                // Validar email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(reservaData.email)) {
+                    mostrarMensaje('Ingresa un email válido', 'error');
+                    return;
+                }
+
+                // Actualizar resumen
+                actualizarResumen();
+            }
+
+            ocultarMensaje();
+            cambiarPaso(paso);
+        }
+
+        function anteriorPaso(paso) {
+            ocultarMensaje();
+            cambiarPaso(paso);
+        }
+
+        function cambiarPaso(paso) {
+            // Ocultar todos los pasos
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Mostrar paso actual
+            document.getElementById(`step${paso}`).classList.add('active');
+
+            // Actualizar indicador
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index + 1 < paso) {
+                    dot.classList.add('completed');
+                } else if (index + 1 === paso) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        // ===================== ACTUALIZAR RESUMEN =====================
+        function actualizarResumen() {
+            document.getElementById('resumen-servicio').textContent = reservaData.servicio_nombre;
+            document.getElementById('resumen-fecha').textContent = formatearFecha(reservaData.fecha);
+            document.getElementById('resumen-hora').textContent = reservaData.hora + ' hs';
+            document.getElementById('resumen-cliente').textContent = `${reservaData.nombre} ${reservaData.apellido}`;
+            document.getElementById('resumen-precio').textContent = `$${reservaData.servicio_precio.toFixed(2)}`;
+            
+            actualizarMontos();
+        }
+
+        function formatearFecha(fecha) {
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', opciones);
+        }
+
+        // ===================== CONFIRMAR RESERVA =====================
+        async function confirmarReserva() {
+            const btnConfirmar = document.getElementById('btn-confirmar');
+            btnConfirmar.disabled = true;
+            btnConfirmar.textContent = 'Procesando...';
+
+            // Mostrar loading
+            document.getElementById('step4').classList.remove('active');
+            document.getElementById('loading').classList.add('active');
+
+            try {
+                const response = await fetch(`${API_URL}/api/reservas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre: reservaData.nombre,
+                        apellido: reservaData.apellido,
+                        email: reservaData.email,
+                        telefono: reservaData.telefono,
+                        servicio_id: reservaData.servicio_id,
+                        fecha: reservaData.fecha,
+                        hora: reservaData.hora,
+                        porcentaje_pago: reservaData.porcentaje_pago,
+                        notas: reservaData.notas
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Respuesta del servidor:', data);
+
+                if (data.success && data.linkPago) {
+                    // Guardar ID en localStorage por si acaso
+                    localStorage.setItem('reservaId', data.reservaId);
+                    
+                    // Redirigir a MercadoPago
+                    console.log('Redirigiendo a:', data.linkPago);
+                    window.location.href = data.linkPago;
+                } else if (data.success && !data.linkPago) {
+                    // Reserva creada pero sin link de pago
+                    document.getElementById('loading').classList.remove('active');
+                    mostrarMensaje(`Reserva #${data.reservaId} creada. ${data.mensaje}`, 'success');
+                    document.getElementById('step4').classList.add('active');
+                    btnConfirmar.disabled = false;
+                    btnConfirmar.textContent = '💳 Pagar con MercadoPago';
+                    
+                    // Mostrar error de MP si existe
+                    if (data.error) {
+                        console.error('Error de MercadoPago:', data.error);
+                        mostrarMensaje(`Reserva creada pero: ${data.error}`, 'error');
+                    }
+                } else {
+                    throw new Error(data.error || 'Error al crear reserva');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('step4').classList.add('active');
+                mostrarMensaje(`Error: ${error.message}`, 'error');
+                btnConfirmar.disabled = false;
+                btnConfirmar.textContent = '💳 Pagar con MercadoPago';
+            }
+        }
+
+        // ===================== MENSAJES =====================
+        function mostrarMensaje(texto, tipo) {
+            const mensaje = document.getElementById('mensaje');
+            mensaje.textContent = texto;
+            mensaje.className = `mensaje ${tipo}`;
+        }
+
+        function ocultarMensaje() {
+            const mensaje = document.getElementById('mensaje');
+            mensaje.className = 'mensaje';
+            mensaje.textContent = '';
+        }
+    </script>
+</body>
+</html>
